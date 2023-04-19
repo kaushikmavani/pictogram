@@ -1,3 +1,3 @@
-# pictogram
+# Pictogram
 
 Welcome to pictogram.
