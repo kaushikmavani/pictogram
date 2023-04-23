@@ -9,6 +9,7 @@ const Like = require('../models/Like');
 const Comment = require('../models/Comment');
 const { Op } = require('sequelize');
 const FollowList = require('../models/Followlist');
+const socket = require('../utils/socket');
 
 class PostController {
 
@@ -44,7 +45,7 @@ class PostController {
                 });
             }
 
-            await user.createPost({ ...req.body, image: req.file.filename }, { transaction: t })
+            const post = await user.createPost({ ...req.body, image: req.file.filename }, { transaction: t })
 
             await t.commit();
 
@@ -216,6 +217,8 @@ class PostController {
                     [Comment, 'created_at', 'DESC']
                 ]
             });
+
+            socket.getIO().emit('post', { message: `Get all the posts by ${req.user.username}.` })
 
             res.status(200).json({
                 status: 1,

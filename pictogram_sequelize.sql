@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Apr 19, 2023 at 03:05 AM
+-- Generation Time: Apr 23, 2023 at 09:12 PM
 -- Server version: 5.7.31
 -- PHP Version: 7.3.21
 
@@ -74,7 +74,16 @@ CREATE TABLE IF NOT EXISTS `follow_list` (
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `follow_user_id` (`follow_user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `follow_list`
+--
+
+INSERT INTO `follow_list` (`id`, `created_at`, `updated_at`, `user_id`, `follow_user_id`) VALUES
+(2, '2023-04-23 06:11:00', '2023-04-23 06:11:00', 1, 3),
+(3, '2023-04-23 06:13:36', '2023-04-23 06:13:36', 2, 1),
+(5, '2023-04-23 07:39:30', '2023-04-23 07:39:30', 1, 4);
 
 -- --------------------------------------------------------
 
@@ -111,7 +120,16 @@ CREATE TABLE IF NOT EXISTS `posts` (
   `user_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `posts`
+--
+
+INSERT INTO `posts` (`id`, `image`, `title`, `description`, `created_at`, `updated_at`, `user_id`) VALUES
+(1, '1682230304279.jpg', 'This is the title.', 'This is the description.', '2023-04-23 06:11:44', '2023-04-23 06:11:44', 3),
+(2, '1682230340441.jpg', 'This is the title.', 'This is the description.', '2023-04-23 06:12:20', '2023-04-23 06:12:20', 4),
+(3, '1682230454286.jpg', 'This is the title.', 'This is the description.', '2023-04-23 06:14:14', '2023-04-23 06:14:14', 1);
 
 -- --------------------------------------------------------
 
@@ -156,7 +174,17 @@ CREATE TABLE IF NOT EXISTS `users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `first_name`, `last_name`, `username`, `email`, `password`, `gender`, `dob`, `mobile_number`, `avatar`, `status`, `email_verified`, `token`, `created_at`, `updated_at`) VALUES
+(1, 'test', 'test', 'test', 'test@yopmail.com', '$2a$10$0LV7wJwz6lQhgivorIOjUu/40.zEpKBSI90W5c44jbGcCqTdLiAWC', 'male', '2000-01-01', '1234567890', '1682230170094.jpg', 1, 1, NULL, '2023-04-23 06:09:30', '2023-04-23 06:09:30'),
+(2, 'testa', 'testa', 'testa', 'testa@yopmail.com', '$2a$10$lI.9Aay9rgk8ct3XCWFd5e/zNi/.3qk054QJpmCbEgsEvDB1ajvbm', 'male', '2000-01-01', '1234567890', '1682230192091.jpg', 1, 1, NULL, '2023-04-23 06:09:52', '2023-04-23 06:09:52'),
+(3, 'testb', 'testb', 'testb', 'testb@yopmail.com', '$2a$10$YrFXFvxm3V/MJNTDg3q.V.ffzH41Hw6/X3cMGa6Y4AAy/eUHm8ZOO', 'male', '2000-01-01', '1234567890', '1682230201171.jpg', 1, 1, NULL, '2023-04-23 06:10:01', '2023-04-23 06:10:01'),
+(4, 'testc', 'testc', 'testc', 'testc@yopmail.com', '$2a$10$UEI.x1RlYIjz9aRUjNuE6.tUbRkZO5WOb.1b/.9rjFx90fvi3aT3a', 'male', '2000-01-01', '1234567890', '1682230205309.jpg', 1, 1, NULL, '2023-04-23 06:10:05', '2023-04-23 06:10:05');
 
 --
 -- Constraints for dumped tables

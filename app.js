@@ -13,6 +13,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const postRoutes = require('./routes/post');
 const config = require('./config/appconfig');
+const socket = require('./utils/socket');
  
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
@@ -124,6 +125,10 @@ sequelize
     .sync()
     .then(() => {
         app.listen(config.app.port);
+        const io = socket.init(3001);
+        io.on("connection", (socket) => {
+            console.log('Socket connected successfully!');
+        });
     })
     .catch(err => console.log(err));
 

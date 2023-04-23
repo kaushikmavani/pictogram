@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.io</title>
+</head>
+<body>
+
+    <div id="content"></div>
+
+    <script type="module">
+        import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
+
+        const socket = io("ws://127.0.0.1:3001");
+
+        socket.on("post", ({ message }) => {
+            const content = document.querySelector('#content')
+            const p = document.createElement('p')
+            const text = document.createTextNode(message)
+            p.append(text)
+            content.append(p)
+        })
+
+    </script>
+    
+</body>
+</html>
