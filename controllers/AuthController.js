@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const Token = require("../models/Token");
-const { getJwtToken } = require("../utils/auth");
 const config = require("../config/appconfig");
 const ejs = require("ejs");
 const rootDir = require("../utils/rootDir");
@@ -152,7 +151,7 @@ class AuthController {
             const salt = bcrypt.genSaltSync(config.auth.bcrypt_salt_length);
             const password = bcrypt.hashSync(req.body.password, salt);
 
-            const token = jwt.sign({ username: data.username, email: data.email }, config.auth.jwt_secret, {});
+            const token = jwt.sign({ username: req.body.username, email: req.body.email }, config.auth.jwt_secret, {});
             
             const data = req.body;
             data.token = token;
@@ -399,10 +398,7 @@ class AuthController {
     static async logout(req, res, next) {
         const t = await sequelize.transaction();
         try {
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
-            await Token.findOrCreate({ where: { token, user_id: decoded.id }, transaction: t });
+            await Token.findOrCreate({ where: { token, user_id: req.user.id }, transaction: t });
 
             await t.commit();
             res.status(200).json({

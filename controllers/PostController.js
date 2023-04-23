@@ -1,13 +1,14 @@
 const fs = require('fs');
 const Joi = require("joi");
 const Post = require("../models/Post");
-const { getJwtToken } = require("../utils/auth");
 const jwt = require('jsonwebtoken');
 const config = require("../config/appconfig");
 const User = require("../models/User");
 const sequelize = require("../utils/database");
 const Like = require('../models/Like');
 const Comment = require('../models/Comment');
+const { Op } = require('sequelize');
+const FollowList = require('../models/Followlist');
 
 class PostController {
 
@@ -35,10 +36,7 @@ class PostController {
                 });
             }
 
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
-            const user = await User.findByPk(decoded.id);
+            const user = await User.findByPk(req.user.id);
             if(!user) {
                 return res.status(400).json({
                     status: 0,
@@ -85,9 +83,6 @@ class PostController {
                 });
             }
 
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
             const post = await Post.findByPk(req.params.id);
             if(!post) {
                 return res.status(400).json({
@@ -96,7 +91,7 @@ class PostController {
                 });
             }
 
-            if(post.user_id != decoded.id) {
+            if(post.user_id != req.user.id) {
                 return res.status(403).json({
                     status: 0,
                     message: "You don't have access to update other's post."
@@ -182,7 +177,23 @@ class PostController {
 
     static async getPosts(req, res, next) {
         try {
+            const user = await User.findOne({
+                where: {
+                    id: req.user.id
+                },
+                include: {
+                    model: FollowList,
+                    as: 'followed_by',
+                    attributes: ['follow_user_id']
+                }
+            });
+
             const posts = await Post.findAll({
+                where: {
+                    user_id: {
+                        [Op.in]: [ ...user.followed_by.map(user => user.follow_user_id), req.user.id ]
+                    }
+                },
                 include: [
                     {
                         model: Like,
@@ -221,9 +232,6 @@ class PostController {
     static async deletePost(req, res, next) {
         const t = await sequelize.transaction();
         try {
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
             const post = await Post.findByPk(req.params.id);
             if(!post) {
                 return res.status(400).json({
@@ -232,7 +240,7 @@ class PostController {
                 });
             }
 
-            if(post.user_id != decoded.id) {
+            if(post.user_id != req.user.id) {
                 return res.status(403).json({
                     status: 0,
                     message: "You don't have access to delete other's post."
@@ -281,9 +289,6 @@ class PostController {
                 });
             }
 
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
             const post = await Post.findOne({
                 where: {
                     id: req.body.post_id
@@ -300,7 +305,7 @@ class PostController {
 
             if(req.body.is_like == 1) {
                 if(post.Likes.length) {
-                    const checkLike = post.Likes.filter(like => like.user_id == decoded.id);
+                    const checkLike = post.Likes.filter(like => like.user_id == req.user.id);
                     if(checkLike.length) {
                         return res.status(400).json({
                             status: 0,
@@ -309,12 +314,12 @@ class PostController {
                     }
                 }
 
-                await post.createLike({ user_id: decoded.id }, { transaction: t });
+                await post.createLike({ user_id: req.user.id }, { transaction: t });
             } else {
                 if(post.Likes.length) {
-                    const checkLike = post.Likes.filter(like => like.user_id == decoded.id)
+                    const checkLike = post.Likes.filter(like => like.user_id == req.user.id)
                     if(checkLike.length) {
-                        await Like.destroy({ where: { user_id: decoded.id, post_id: post.id } }, { transaction: t });
+                        await Like.destroy({ where: { user_id: req.user.id, post_id: post.id } }, { transaction: t });
                     } else {
                         return res.status(400).json({
                             status: 0,
@@ -434,9 +439,6 @@ class PostController {
                 });
             }
 
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
             const post = await Post.findByPk(req.params.id);
 
             if(!post) {
@@ -446,7 +448,7 @@ class PostController {
                 });
             }
 
-            await post.createComment({ ...req.body, user_id: decoded.id }, { transaction: t });
+            await post.createComment({ ...req.body, user_id: req.user.id }, { transaction: t });
 
             await t.commit();
 
@@ -555,9 +557,6 @@ class PostController {
                 });
             }
 
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
             const comment = await Comment.findByPk(req.params.comment_id);
             if(!comment) {
                 return res.status(400).json({
@@ -566,7 +565,7 @@ class PostController {
                 });
             }
 
-            if(comment.user_id != decoded.id) {
+            if(comment.user_id != req.user.id) {
                 return res.status(403).json({
                     status: 1,
                     message: "You don't have access to update other's comment"
@@ -594,9 +593,6 @@ class PostController {
     static async deleteComment(req, res, next) {
         const t = await sequelize.transaction();
         try {
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
             const comment = await Comment.findOne({
                 where: {
                     id: req.params.comment_id
@@ -610,7 +606,7 @@ class PostController {
                 });
             }
 
-            if(comment.user_id != decoded.id) {
+            if(comment.user_id != req.user.id) {
                 return res.status(403).json({
                     status: 0,
                     message: "You don't have access to delete other's comment."

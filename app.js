@@ -121,7 +121,7 @@ Comment.belongsTo(Post, {
 });
 
 sequelize
-    .sync({force: true})
+    .sync()
     .then(() => {
         app.listen(config.app.port);
     })

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { uploadPost } = require('../utils/multer');
 const PostController = require('../controllers/PostController');
-const { isAuthenticated } = require('../utils/auth');
+const isAuthenticated = require('../middleware/auth');
 
 router.post('/create', isAuthenticated, uploadPost.single('image'), PostController.createPost);
 router.post('/update/:id', isAuthenticated, uploadPost.single('image'), PostController.updatePost);

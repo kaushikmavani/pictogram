@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const UserController = require('../controllers/UserController');
-const { isAuthenticated } = require('../utils/auth');
+const isAuthenticated = require('../middleware/auth');
 const { uploadProfile } = require('../utils/multer');
 
 router.get('/profile', isAuthenticated, UserController.profile);

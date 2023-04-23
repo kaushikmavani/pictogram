@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const jwt = require("jsonwebtoken");
-const { getJwtToken } = require("../utils/auth");
 const User = require("../models/User");
 const sequelize = require("../utils/database");
 const Joi = require("joi");
@@ -97,12 +96,9 @@ class UserController {
 
     static async profile(req, res, next) {
         try {
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
             const user = await User.findOne({ 
                 where: {
-                    id: decoded.id
+                    id: req.user.id
                 },
                 include: [
                     {
@@ -224,10 +220,7 @@ class UserController {
                 });
             }
 
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
-            const user = await User.findByPk(decoded.id);
+            const user = await User.findByPk(req.user.id);
             if(!user) {
                 return res.status(400).json({
                     status: 0,
@@ -291,10 +284,7 @@ class UserController {
                 });
             }
 
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
-            const user = await User.findByPk(decoded.id);
+            const user = await User.findByPk(req.user.id);
             if(!user) {
                 return res.status(400).json({
                     status: 0,
@@ -353,10 +343,7 @@ class UserController {
                 });
             }
 
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
-            if(decoded.id == req.body.user_id) {
+            if(req.user.id == req.body.user_id) {
                 return res.status(400).json({
                     status: 0,
                     message: "You can not block/unblock to yourself."
@@ -365,21 +352,28 @@ class UserController {
 
             const user = await User.findOne({
                 where: {
-                    id: decoded.id
+                    id: req.user.id
                 },
                 attributes: [],
-                include: [{
-                    model: BlockList,
-                    as: 'blocked_by',
-                    attributes: {
-                        exclude: ['created_at', 'updated_at']
+                include: [
+                    {
+                        model: BlockList,
+                        as: 'blocked_by',
+                        attributes: {
+                            exclude: ['created_at', 'updated_at']
+                        },
+                        include: [{
+                            model: User,
+                            as: 'blocked_user',
+                            attributes: ['id', 'first_name', 'last_name', 'username', 'email', 'gender', 'dob', 'mobile_number']
+                        }]
                     },
-                    include: [{
-                        model: User,
-                        as: 'blocked_user',
-                        attributes: ['id', 'first_name', 'last_name', 'username', 'email', 'gender', 'dob', 'mobile_number']
-                    }]
-                }]
+                    {
+                        model: FollowList,
+                        as: 'followed_by',
+                        attributes: ['follow_user_id']
+                    }
+                ]
             });
 
             if(req.body.is_block == 1) {
@@ -392,13 +386,19 @@ class UserController {
                         });
                     }
                 }
+
+                // remove from following list before block
+                const followed_user = [...user.followed_by.map(follow => follow.follow_user_id)];
+                if(followed_user.includes(+req.body.user_id)) {
+                    await FollowList.destroy({ where: { user_id: req.user.id, follow_user_id: req.body.user_id } }, { transaction: t });
+                }
                 
-                await BlockList.create({ user_id: decoded.id, block_user_id: req.body.user_id }, { transaction: t });
+                await BlockList.create({ user_id: req.user.id, block_user_id: req.body.user_id }, { transaction: t });
             } else {
                 if(user.blocked_by.length) {
                     const checkUser = user.blocked_by.filter(blockedUser => blockedUser.block_user_id == req.body.user_id);
                     if(checkUser.length) {
-                        await BlockList.destroy({ where: { user_id: decoded.id, block_user_id: req.body.user_id } }, { transaction: t })
+                        await BlockList.destroy({ where: { user_id: req.user.id, block_user_id: req.body.user_id } }, { transaction: t })
                     } else {
                         return res.status(400).json({
                             status: 0,
@@ -431,12 +431,9 @@ class UserController {
     
     static async blockUsers(req, res, next) {
         try {
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
             const user = await User.findOne({ 
                 where: {
-                    id: decoded.id
+                    id: req.user.id
                 },
                 attributes: [],
                 include: [{
@@ -500,10 +497,7 @@ class UserController {
                 });
             }
 
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
-            if(decoded.id == req.body.user_id) {
+            if(req.user.id == req.body.user_id) {
                 return res.status(400).json({
                     status: 0,
                     message: "You can not follow/unfollow to yourself"
@@ -512,7 +506,7 @@ class UserController {
 
             const user = await User.findOne({
                 where: {
-                    id: decoded.id
+                    id: req.user.id
                 },
                 include: [{
                     model: FollowList,
@@ -568,12 +562,9 @@ class UserController {
 
     static async following(req, res, next) {
         try {
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
             const user = await User.findOne({
                 where: {
-                    id: decoded.id
+                    id: req.user.id
                 },
                 attributes: [],
                 include: [{
@@ -616,12 +607,9 @@ class UserController {
 
     static async follower(req, res, next) {
         try {
-            const token = getJwtToken(req);
-            const decoded = jwt.verify(token, config.auth.jwt_secret);
-
             const user = await User.findOne({
                 where: {
-                    id: decoded.id
+                    id: req.user.id
                 },
                 attributes: [],
                 include: [{
