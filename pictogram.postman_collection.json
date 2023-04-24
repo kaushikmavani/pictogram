@@ -628,6 +628,9 @@
 			"item": [
 				{
 					"name": "Get Posts",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -641,6 +644,16 @@
 						},
 						"method": "GET",
 						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "page",
+									"value": "1",
+									"type": "default"
+								}
+							]
+						},
 						"url": {
 							"raw": "{{url}}/post",
 							"host": [
