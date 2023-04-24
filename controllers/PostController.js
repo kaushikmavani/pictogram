@@ -189,6 +189,10 @@ class PostController {
                 }
             });
 
+            const limit = req.body.limit ?? 10
+            const page = req.body.page ?? 1
+            const offset = limit * (page-1)
+
             const posts = await Post.findAll({
                 where: {
                     user_id: {
@@ -215,7 +219,9 @@ class PostController {
                     ['created_at', 'DESC'],
                     [Like, 'created_at', 'DESC'],
                     [Comment, 'created_at', 'DESC']
-                ]
+                ],
+                limit,
+                offset
             });
 
             socket.getIO().emit('post', { message: `Get all the posts by ${req.user.username}.` })
