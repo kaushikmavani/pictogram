@@ -15,6 +15,8 @@ const config = {
     },
     auth: {
         jwt_secret: process.env.JWT_SECRET,
+        jwt_reset_password_secret: process.env.JWT_REESET_PASSWORD_SECRET,
+        jwt_confirm_email_secret: process.env.JWT_CONFIRM_EMAIL_SECRET,
         jwt_expiresin: process.env.JWT_EXPIRES_IN || '1d',
         bcrypt_salt_length: process.env.BCRYPT_SALT_LENGTH || 10
     }

@@ -59,7 +59,7 @@ class AuthController {
                 });
             }
 
-            const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, config.auth.jwt_secret, { expiresIn: '1d' });
+            const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, config.auth.jwt_secret, { expiresIn: config.auth.jwt_expiresin });
 
             if(user.Tokens.length) {
                 const deletableTokens = user.Tokens.filter(singleToken => {
@@ -151,7 +151,7 @@ class AuthController {
             const salt = bcrypt.genSaltSync(config.auth.bcrypt_salt_length);
             const password = bcrypt.hashSync(req.body.password, salt);
 
-            const token = jwt.sign({ username: req.body.username, email: req.body.email }, config.auth.jwt_secret, {});
+            const token = jwt.sign({ username: req.body.username, email: req.body.email }, config.auth.jwt_confirm_email_secret, {});
             
             const data = req.body;
             data.token = token;
@@ -280,7 +280,7 @@ class AuthController {
                 });
             }
 
-            const token = jwt.sign({ id: user.id, username: user.username, email: user.email}, config.auth.jwt_secret, { expiresIn: '3h' });
+            const token = jwt.sign({ id: user.id, username: user.username, email: user.email}, config.auth.jwt_reset_password_secret, { expiresIn: '3h' });
             
             await user.update({ token }, { transaction: t });
 
@@ -365,7 +365,7 @@ class AuthController {
                 });
             }
 
-            jwt.verify(req.params.token, config.auth.jwt_secret, function(err, decoded) {
+            jwt.verify(req.params.token, config.auth.jwt_reset_password_secret, function(err, decoded) {
                 if(err) {
                     return res.status(400).json({
                         status: 0,
@@ -398,7 +398,7 @@ class AuthController {
     static async logout(req, res, next) {
         const t = await sequelize.transaction();
         try {
-            await Token.findOrCreate({ where: { token, user_id: req.user.id }, transaction: t });
+            await Token.findOrCreate({ where: { token: req.token, user_id: req.user.id }, transaction: t });
 
             await t.commit();
             res.status(200).json({

@@ -35,6 +35,7 @@ module.exports = async (req, res, next) => {
                     message: "Unauthorized, Please enter valid token."
                 });
             } else {
+                req.token = token
                 req.user = decoded
             }
         });
