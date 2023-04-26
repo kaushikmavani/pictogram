@@ -620,14 +620,14 @@ class UserController {
                     },
                     include: [{
                         model: User,
-                        as: 'followed_user',
+                        as: 'followed_by',
                         attributes: ['id', 'first_name', 'last_name', 'username', 'email', 'gender', 'dob', 'mobile_number']
                     }]
                 }],
                 order: [
                     ['created_at', 'DESC'],
                     [{model: FollowList, as: 'followed_user'}, 'created_at', 'DESC'],
-                    [{model: FollowList, as: 'followed_user'}, {model: User, as: 'followed_user'}, 'created_at', 'DESC']
+                    [{model: FollowList, as: 'followed_user'}, {model: User, as: 'followed_by'}, 'created_at', 'DESC']
                 ]
             });
 
